@@ -1,0 +1,16 @@
+Voice Sathi validation report
+Date: 2026-10-22
+
+PASSED LOCALLY:
+- AndroidManifest.xml parses as valid XML.
+- Required Gradle project files are present.
+- Static feature checks find Hindi/US-English selection, TTS synthesis, WAV export, and utterance callback handling.
+- ZIP structure check passes.
+- Chunk-splitting design reviewed for empty, sentence, and long-input cases (previous simulation: 5,000-word input split into 12 chunks; each <= 2,200 characters).
+- Cloud workflow now explicitly sets up Java 17, Android SDK platform/build tools, runs static validation, builds the debug APK, and uploads the artifact.
+
+NOT YET TESTED / NOT CLAIMED:
+- No APK was compiled in this environment because Android SDK/Gradle are not installed here.
+- The GitHub Actions workflow has not yet been run against a GitHub repository.
+- No install or runtime test on a physical Android phone was performed.
+- Actual TTS voice availability, generated audio quality, and WAV compatibility must be verified on the target phone.
