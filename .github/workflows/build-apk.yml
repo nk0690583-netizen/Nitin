@@ -5,9 +5,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,42 +12,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract ZIP and organize project structure
-        run: |
-          if [ -f "VoiceSathi-Android-Project-v2.zip" ]; then
-            unzip -q -o VoiceSathi-Android-Project-v2.zip -d /tmp/extracted
-            cp -rf /tmp/extracted/VoiceSathi/* .
-            if ! grep -q "compileOptions" app/build.gradle; then
-              sed -i '/defaultConfig {/i \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n    kotlinOptions {\n        jvmTarget = "17"\n    }' app/build.gradle
-            fi
-            rm -f VoiceSathi-Android-Project-v2.zip
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add -A
-            git commit -m "Extract project files into proper structure" || true
-            git push || true
-          fi
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --stacktrace
+      - name: Fix JVM target if missing and Build Debug APK
+        run: |
+          if ! grep -q "compileOptions" app/build.gradle; then
+            sed -i '/defaultConfig {/i \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n    kotlinOptions {\n        jvmTarget = "17"\n    }' app/build.gradle
+          fi
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: VoiceSathi-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          
